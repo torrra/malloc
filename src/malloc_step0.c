@@ -107,7 +107,7 @@ void throwaway_free(void* to_free)
     printf("Invalid pointer.\n");
 }
 
-t_block* fragment_block(t_block* big_block, size_t to_alloc)
+void* fragment_block(t_block* big_block, size_t to_alloc)
 {
     t_block*      rest_block = big_block + sizeof(t_block) + to_alloc;
 

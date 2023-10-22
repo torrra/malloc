@@ -19,6 +19,6 @@ typedef struct s_footer
     size_t m_data_size;
 }t_footer;
 
-t_block* fragment_block(t_block* big_block, size_t to_alloc);
+void* fragment_block(t_block* big_block, size_t to_alloc);
 
 #endif
