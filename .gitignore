@@ -1,0 +1,5 @@
+#Debug files
+debugbuild/
+
+#.vscode files
+.vscode/
