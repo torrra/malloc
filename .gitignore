@@ -3,3 +3,6 @@ debugbuild/
 
 #.vscode files
 .vscode/
+
+#Expected output (txt file)
+resultat_type.txt
