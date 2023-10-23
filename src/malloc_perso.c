@@ -50,10 +50,13 @@ t_block* extend_heap(size_t size)
     return new_block;
 }
 
-// void initialize_block(t_block* block)
-// {
-
-// }
+void initialize_block(t_block* block)
+{
+    block->m_size = 0;
+    block->m_next = NULL;
+    block->m_prev = NULL;
+    block->m_free = true;
+}
 
 t_block* find_block(size_t size)
 {
