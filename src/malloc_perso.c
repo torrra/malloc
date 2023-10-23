@@ -9,20 +9,16 @@ void* malloc_perso(size_t size)
     size_t  temp_size = size;
 
     size = ALIGN_UP(size, 16);
-    
-    //printf("I'm going to alloc %zu bytes (sizeof t_block: %zu  + requested size %zu (aligment 16))\n",
-    //size, sizeof(t_block), temp_size);
 
     t_block*    found_block = find_block(size);
 
     if (found_block != NULL)
-    {
-       
         return (void*) ++found_block;
-    }
+
     found_block = extend_heap(size);
     printf("I'm going to alloc %zu bytes (sizeof t_block: %zu  + requested size %zu (aligment 16))\nThe pointer to block is %p  / block end is %p / so aligned data block is at %p\nI found no free block: created a new one %p\n",
     size, sizeof(t_block), temp_size, (void*) found_block, (void*) (found_block + 1), (void*) (found_block + 1), (void*) found_block);
+    
     return (void*) ++found_block;
 }
 
@@ -73,8 +69,6 @@ t_block* find_block(size_t size)
         }
         else if ((list_member->m_free && list_member->m_size == size) || (list_member->m_free && list_member->m_size > size))
         {
-            // printf("fit found\n");
-            // printf("pointer to metadata: %p\n", (void*)list_member)
             printf("I found free block %p\n", (void*) list_member);
             list_member->m_free = false;
             return list_member;
@@ -86,7 +80,7 @@ t_block* find_block(size_t size)
 
 t_block* split_block (t_block* b, size_t size)
 {
-    t_block*      remainder_block = b + 2;
+    t_block*      remainder_block = (void*) (b + (sizeof(t_block) + size));
     size_t        remainder_size = b->m_size - (size + sizeof(t_block));
 
     printf("Block %p can be split when allocating %zu bytes because block size > mimimumSplitBlockSize %zu\nSplitting block %p to make it size %zu and creating new block %p having size %zu\n",
@@ -109,8 +103,10 @@ void try_to_fusion(t_block* freed_block)
     if (NULL != freed_block->m_next && freed_block->m_next->m_free)
     {
         freed_block->m_size += (freed_block->m_next->m_size + sizeof(t_block));
+
         printf("Merging block %p with next one %p because both are free\nBlock %p is now size %zu\n",
         (void*) freed_block, (void*) freed_block->m_next, (void*) freed_block, freed_block->m_size);
+        
         if (NULL!= freed_block->m_next->m_next)
         {
             t_block*    temp_next = freed_block->m_next->m_next;
@@ -121,8 +117,6 @@ void try_to_fusion(t_block* freed_block)
         }
         else
             freed_block->m_next = (void*) freed_block->m_next;
-        //printf("new size : %zu\n", freed_block->m_size);
-        //printf("Succesfully defragmented\n");
         
     }
     if (NULL != freed_block->m_prev && freed_block->m_prev->m_free)
@@ -135,8 +129,6 @@ void try_to_fusion(t_block* freed_block)
             freed_block->m_next->m_prev = freed_block->m_prev;
             freed_block->m_prev->m_next = freed_block->m_next;
         }
-        //printf("new size : %zu\n", freed_block->m_prev->m_size);
         freed_block = (void*) freed_block;
-    //printf("Succesfully defragmented\n");
     }
 }
