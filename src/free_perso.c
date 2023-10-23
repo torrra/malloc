@@ -1,6 +1,7 @@
 #include "free_perso.h"
 #include "malloc_perso.h"
 #include <unistd.h>
+#include <stdio.h>
 
 void free_perso (void *ptr)
 {
@@ -16,6 +17,7 @@ void free_perso (void *ptr)
                 t_block*    cast_data = (t_block*) ptr;
 
                 cast_data--;
+                printf("Freeing block %p\n", (void*) (cast_data));
                 cast_data->m_free = true;
                 try_to_fusion(cast_data);
                 ptr = NULL;
