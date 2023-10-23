@@ -7,9 +7,8 @@ void free_perso (void *ptr)
 {
     if (NULL != ptr)
     {
-        t_block*    list_member = g_head;
+        t_block*    list_member = (void*) g_head;
 
-    
         while (NULL != list_member)
         {
             if (list_member + 1 == ptr)
@@ -26,6 +25,5 @@ void free_perso (void *ptr)
             list_member = list_member->m_next;
         }
     } 
-    //perror("Invalid pointer."); 
-    //printf("Invalid pointer.\n");
+    printf("Invalid pointer.\n");
 }

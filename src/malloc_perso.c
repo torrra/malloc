@@ -2,7 +2,7 @@
 #include <unistd.h>
 #include <stdio.h>
 
-t_block* g_head = NULL;
+void* g_head = NULL;
 
 void* malloc_perso(size_t size)
 {
@@ -57,7 +57,7 @@ t_block* extend_heap(size_t size)
 
 t_block* find_block(size_t size)
 {
-    t_block*    list_member = g_head;
+    t_block*    list_member = (t_block*) g_head;
 
     size = ALIGN_UP(size, 16);
     while (NULL != list_member)
@@ -80,7 +80,7 @@ t_block* find_block(size_t size)
 
 t_block* split_block (t_block* b, size_t size)
 {
-    t_block*      remainder_block = (void*) (b + (sizeof(t_block) + size));
+    t_block*      remainder_block = (t_block*) ((__intptr_t) b + (sizeof(t_block) + size));
     size_t        remainder_size = b->m_size - (size + sizeof(t_block));
 
     printf("Block %p can be split when allocating %zu bytes because block size > mimimumSplitBlockSize %zu\nSplitting block %p to make it size %zu and creating new block %p having size %zu\n",
@@ -117,7 +117,6 @@ void try_to_fusion(t_block* freed_block)
         }
         else
             freed_block->m_next = (void*) freed_block->m_next;
-        
     }
     if (NULL != freed_block->m_prev && freed_block->m_prev->m_free)
     {
