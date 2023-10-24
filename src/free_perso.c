@@ -7,19 +7,18 @@ void free_perso (void *ptr)
 {
     if (NULL != ptr)
     {
-        t_block*    list_member = (void*) g_head;
+        t_block*    list_member = (t_block*) g_head;
 
         while (NULL != list_member)
         {
-            if (list_member + 1 == ptr)
+            if (list_member + 1 == ptr && !list_member->m_free)
             {
-                t_block*    cast_data = (t_block*) ptr;
-
-                cast_data--;
-                printf("Freeing block %p\n", (void*) (cast_data));
-                cast_data->m_free = true;
-                try_to_fusion(cast_data);
+                printf("Freeing block %p\n", (void*) (list_member));
+                list_member->m_free = true;
+                try_to_fusion(list_member);
                 ptr = NULL;
+                //if (list_member == g_head)
+                    //find_head(list_member);
                 return;
             }
             list_member = list_member->m_next;
@@ -27,3 +26,12 @@ void free_perso (void *ptr)
     } 
     printf("Invalid pointer.\n");
 }
+
+// void find_head(t_block* block)
+// {
+//     while (NULL != block && block->m_free)
+//     {
+//        block = block->m_next;
+//     }   
+//     g_head = block;  
+// }

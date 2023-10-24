@@ -16,7 +16,7 @@ typedef struct s_block
     bool                m_free;
 }t_block;
 
-extern void* g_head;
+extern void* g_head ;
 
 void* malloc_perso(size_t size);
 
