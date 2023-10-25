@@ -17,8 +17,6 @@ void free_perso (void *ptr)
                 list_member->m_free = true;
                 try_to_fusion(list_member);
                 ptr = NULL;
-                //if (list_member == g_head)
-                    //find_head(list_member);
                 return;
             }
             list_member = list_member->m_next;
@@ -26,12 +24,3 @@ void free_perso (void *ptr)
     } 
     printf("Invalid pointer.\n");
 }
-
-// void find_head(t_block* block)
-// {
-//     while (NULL != block && block->m_free)
-//     {
-//        block = block->m_next;
-//     }   
-//     g_head = block;  
-// }

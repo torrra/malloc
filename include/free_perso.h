@@ -5,6 +5,4 @@
 
 void free_perso (void *ptr);
 
-void find_head(t_block* block);
-
 #endif
