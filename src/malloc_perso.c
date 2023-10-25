@@ -2,7 +2,7 @@
 #include <unistd.h>
 #include <stdio.h>
 
-void* g_head = NULL;
+void*   g_head = NULL;
 
 void* malloc_perso(size_t size)
 {
@@ -19,7 +19,7 @@ void* malloc_perso(size_t size)
     printf("I'm going to alloc %zu bytes (sizeof t_block: %zu  + requested size %zu (aligment 16))\
 \nThe pointer to block is %p  / block end is %p / so aligned data block is at %p\n\
 I found no free block: created a new one %p\n",
-    size, sizeof(t_block), temp_size, (void*) found_block, (void*) (found_block + 1), (void*) (found_block + 1), (void*) found_block);
+    size + sizeof(t_block), sizeof(t_block), temp_size, (void*) found_block, (void*) (found_block + 1), (void*) (found_block + 1), (void*) found_block);
     
     return (void*) ++found_block;
 }
@@ -89,10 +89,10 @@ t_block* split_block (t_block* b, size_t size)
     t_block*      remainder_block = (t_block*) ((__intptr_t) b + (sizeof(t_block) + size));
     size_t        remainder_size = b->m_size - (size + sizeof(t_block));
 
-    printf("Block %p can be split when allocating %zu bytes because block size > \
+    printf("Block %p of size %zu can be split when allocating %zu bytes because block size > \
 mimimumSplitBlockSize %zu\nSplitting block %p to make it size %zu and creating \
 new block %p having size %zu\n",
-    (void*) b, size, size + sizeof(t_block), (void*) b, size, 
+    (void*) b, b->m_size, size, size + sizeof(t_block), (void*) b, size, 
     (void*) remainder_block, remainder_size);
 
     remainder_block->m_prev = b;
@@ -115,18 +115,16 @@ void try_to_fusion(t_block* freed_block)
 
         printf("Merging block %p with next one %p because both are free\nBlock %p is now size %zu\n",
         (void*) freed_block, (void*) freed_block->m_next, (void*) freed_block, freed_block->m_size);
-        
+
+        freed_block->m_next->m_free = false;
         if (NULL!= freed_block->m_next->m_next)
         {
             t_block*    temp_next = freed_block->m_next->m_next;
-
-            freed_block->m_next->m_free = false;
-            freed_block->m_next = (void*) freed_block->m_next;
             freed_block->m_next = temp_next;
             temp_next->m_prev = freed_block;
         }
         else
-            freed_block->m_next = (void*) freed_block->m_next;
+            freed_block->m_next->m_free = false;
     }
     if (NULL != freed_block->m_prev && freed_block->m_prev->m_free)
     {
@@ -135,10 +133,9 @@ void try_to_fusion(t_block* freed_block)
         (void*) freed_block, (void*) freed_block->m_prev,(void*) freed_block->m_prev, freed_block->m_prev->m_size);
         if (NULL != freed_block->m_next)
         {
-            freed_block->m_free = false;
             freed_block->m_next->m_prev = freed_block->m_prev;
             freed_block->m_prev->m_next = freed_block->m_next;
         }
-        freed_block = (void*) freed_block;
+        freed_block->m_free = false;
     }
 }
