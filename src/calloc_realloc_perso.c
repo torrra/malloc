@@ -29,7 +29,7 @@ void* realloc_perso(void* to_realloc, size_t new_size)
 
 void* calloc_perso(size_t nb_elements, size_t size)
 {
-    char*    block_data = (char*) malloc_perso(size);
+    char*    block_data = (char*) malloc_perso(nb_elements * size);
 
     if (NULL == block_data)
         return NULL;
