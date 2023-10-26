@@ -2,13 +2,21 @@
 #include <unistd.h>
 #include <stdio.h>
 
+#define MAX_SIZE_T 4294967295
+
 void*   g_head = NULL;
 
 void* malloc_perso(size_t size)
-{
-    size_t  temp_size = size;
+{   
+    const size_t    alignment = 16; 
+    
+    if (0 == size || size >= MAX_SIZE_T - sizeof(t_block) || 
+    size + sizeof(t_block) > MAX_SIZE_T - alignment)
+        return NULL;
+    
+    size_t      temp_size = size;
 
-    size = ALIGN_UP(size, 16);
+    size = ALIGN_UP(size, alignment);
 
     t_block*    found_block = find_block(size);
 
@@ -19,7 +27,8 @@ void* malloc_perso(size_t size)
     printf("I'm going to alloc %zu bytes (sizeof t_block: %zu  + requested size %zu (aligment 16))\
 \nThe pointer to block is %p  / block end is %p / so aligned data block is at %p\n\
 I found no free block: created a new one %p\n",
-    size + sizeof(t_block), sizeof(t_block), temp_size, (void*) found_block, (void*) (found_block + 1), (void*) (found_block + 1), (void*) found_block);
+    size + sizeof(t_block), sizeof(t_block), temp_size, (void*) found_block, (void*) (found_block + 1), 
+    (void*) (found_block + 1), (void*) found_block);
     
     return (void*) ++found_block;
 }
@@ -54,6 +63,9 @@ t_block* extend_heap(size_t size)
 
 void initialize_block(t_block* block)
 {
+    if (NULL == block)
+        return;
+
     block->m_size = 0;
     block->m_next = NULL;
     block->m_prev = NULL;
@@ -109,7 +121,8 @@ new block %p having size %zu\n",
 
 void try_to_fusion(t_block* freed_block)
 {
-    if (NULL != freed_block->m_next && freed_block->m_next->m_free)
+    if (NULL != freed_block->m_next && freed_block->m_next->m_free &&
+    freed_block->m_size + freed_block->m_next->m_size + sizeof(t_block) < MAX_SIZE_T)
     {
         freed_block->m_size += (freed_block->m_next->m_size + sizeof(t_block));
 
@@ -126,7 +139,8 @@ void try_to_fusion(t_block* freed_block)
         else
             freed_block->m_next->m_free = false;
     }
-    if (NULL != freed_block->m_prev && freed_block->m_prev->m_free)
+    if (NULL != freed_block->m_prev && freed_block->m_prev->m_free &&
+    freed_block->m_prev->m_size + freed_block->m_size + sizeof(t_block) < MAX_SIZE_T)
     {
         freed_block->m_prev->m_size += (freed_block->m_size + sizeof(t_block));
         printf("Merging block %p with previous one %p because both are free\nBlock %p is now size %zu\n",
