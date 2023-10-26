@@ -11,7 +11,8 @@ file(
     ${SOURCE_DIR}/*.c
     )
 # Enable all compiler warnings
-add_compile_options(-g -Wall -Wextra -Wshadow -Wpedantic) # -Wpedantic to display errors caused by minor mistakes in code
+# -Wpedantic to display warnings caused by minor mistakes in code
+add_compile_options(-g -Wall -Wextra -Wshadow -Wpedantic) 
 
 add_executable(exe)
 
