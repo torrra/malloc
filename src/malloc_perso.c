@@ -2,7 +2,7 @@
 #include <unistd.h>
 #include <stdio.h>
 
-#define MAX_SIZE_T 4294967295
+#define MAX_SIZE_T      4294967295
 
 void*   g_head = NULL;
 
@@ -40,23 +40,23 @@ t_block* extend_heap(size_t size)
 
     t_block*    new_block = (t_block*) sbrk(0);
 
-    new_block->m_size = size;
-    new_block->m_next = NULL;
-    new_block->m_free = false;
+    new_block -> m_size = size;
+    new_block -> m_next = NULL;
+    new_block -> m_free = false;
     if (NULL == g_head)
     {
         g_head = new_block;
-        new_block->m_prev = NULL;
+        new_block -> m_prev = NULL;
     }
     else
     {
         t_block*    list_member = g_head;
 
-        while (NULL != list_member->m_next)
-            list_member = list_member->m_next;
+        while (NULL != list_member -> m_next)
+            list_member = list_member -> m_next;
 
-        list_member->m_next = new_block;
-        new_block->m_prev = list_member;
+        list_member -> m_next = new_block;
+        new_block -> m_prev = list_member; 
     }
     return new_block;
 }
@@ -66,10 +66,10 @@ void initialize_block(t_block* block)
     if (NULL == block)
         return;
 
-    block->m_size = 0;
-    block->m_next = NULL;
-    block->m_prev = NULL;
-    block->m_free = true;
+    block -> m_size = 0;
+    block -> m_next = NULL;
+    block -> m_prev = NULL;
+    block -> m_free = true;
 }
 
 t_block* find_block(size_t size)
@@ -79,19 +79,31 @@ t_block* find_block(size_t size)
     size = ALIGN_UP(size, 16);
     while (NULL != list_member)
     {
-        if (list_member->m_free && list_member->m_size > size + sizeof(t_block))
+        if (list_member -> m_free && list_member -> m_size > size + sizeof(t_block))
         {
             printf("I found free block %p\n", (void*) list_member);
             return split_block(list_member, size);
         }
-        else if ((list_member->m_free && list_member->m_size == size) || 
-        (list_member->m_free && list_member->m_size > size))
+        else if (list_member -> m_free && list_member -> m_size >= size)
         {
             printf("I found free block %p\n", (void*) list_member);
-            list_member->m_free = false;
+            list_member -> m_free = false;
             return list_member;
         }
-        list_member = list_member->m_next;
+        else if (list_member -> m_free && NULL == list_member -> m_next)
+        {
+            t_block     *temp_prev = list_member -> m_prev;
+            size_t      temp_size = list_member -> m_size;
+
+            list_member = (t_block*) sbrk(size - list_member -> m_size);
+            list_member -> m_size += size - list_member -> m_size;
+            list_member -> m_free = false;
+            list_member -> m_prev = temp_prev;
+            list_member -> m_next = NULL;
+            printf("I'm going to extend last block %p (size %zu) and make it size %zu", (void*) list_member, temp_size, list_member -> m_size);
+            return list_member;
+        }
+        list_member = list_member -> m_next;
     }
     return NULL;
 }
@@ -99,57 +111,62 @@ t_block* find_block(size_t size)
 t_block* split_block (t_block* b, size_t size)
 {
     t_block*      remainder_block = (t_block*) ((__intptr_t) b + (sizeof(t_block) + size));
-    size_t        remainder_size = b->m_size - (size + sizeof(t_block));
+    size_t        remainder_size = b -> m_size - (size + sizeof(t_block));
 
     printf("Block %p of size %zu can be split when allocating %zu bytes because block size > \
 mimimumSplitBlockSize %zu\nSplitting block %p to make it size %zu and creating \
 new block %p having size %zu\n",
-    (void*) b, b->m_size, size, size + sizeof(t_block), (void*) b, size, 
+    (void*) b, b -> m_size, size, size + sizeof(t_block), (void*) b, size, 
     (void*) remainder_block, remainder_size);
 
-    remainder_block->m_prev = b;
-    remainder_block->m_next = b->m_next;
-    remainder_block->m_size = remainder_size;
-    remainder_block->m_free = true;
+    remainder_block -> m_prev = b;
+    remainder_block -> m_next = b -> m_next;
+    remainder_block -> m_size = remainder_size;
+    remainder_block -> m_free = true;
 
-    b->m_next = remainder_block;
-    b->m_size = size;
-    b->m_free = false;
+    b -> m_next = remainder_block;
+    b -> m_size = size;
+    b -> m_free = false;
 
     return b;
 }
 
 void try_to_fusion(t_block* freed_block)
 {
-    if (NULL != freed_block->m_next && freed_block->m_next->m_free &&
-    freed_block->m_size + freed_block->m_next->m_size + sizeof(t_block) < MAX_SIZE_T)
+    if (NULL != freed_block -> m_next && freed_block -> m_next -> m_free &&
+    freed_block -> m_size + freed_block -> m_next -> m_size + sizeof(t_block) < MAX_SIZE_T)
     {
-        freed_block->m_size += (freed_block->m_next->m_size + sizeof(t_block));
+        freed_block -> m_size += (freed_block -> m_next -> m_size + sizeof(t_block));
 
         printf("Merging block %p with next one %p because both are free\nBlock %p is now size %zu\n",
-        (void*) freed_block, (void*) freed_block->m_next, (void*) freed_block, freed_block->m_size);
+        (void*) freed_block, (void*) freed_block -> m_next, (void*) freed_block, freed_block -> m_size);
 
-        freed_block->m_next->m_free = false;
-        if (NULL!= freed_block->m_next->m_next)
+        freed_block -> m_next -> m_free = false;
+        if (NULL!= freed_block -> m_next -> m_next)
         {
-            t_block*    temp_next = freed_block->m_next->m_next;
-            freed_block->m_next = temp_next;
-            temp_next->m_prev = freed_block;
+            freed_block -> m_next = freed_block -> m_next -> m_next;
+            freed_block -> m_next -> m_prev = freed_block;
         }
-        else
-            freed_block->m_next->m_free = false;
     }
-    if (NULL != freed_block->m_prev && freed_block->m_prev->m_free &&
-    freed_block->m_prev->m_size + freed_block->m_size + sizeof(t_block) < MAX_SIZE_T)
+    if (NULL != freed_block -> m_prev && freed_block -> m_prev -> m_free &&
+    freed_block -> m_prev -> m_size + freed_block -> m_size + sizeof(t_block) < MAX_SIZE_T)
     {
-        freed_block->m_prev->m_size += (freed_block->m_size + sizeof(t_block));
+        freed_block -> m_prev -> m_size += (freed_block -> m_size + sizeof(t_block));
+
         printf("Merging block %p with previous one %p because both are free\nBlock %p is now size %zu\n",
-        (void*) freed_block, (void*) freed_block->m_prev,(void*) freed_block->m_prev, freed_block->m_prev->m_size);
-        if (NULL != freed_block->m_next)
+        (void*) freed_block, (void*) freed_block -> m_prev,(void*) freed_block -> m_prev, freed_block -> m_prev -> m_size);
+
+        if (NULL != freed_block -> m_next)
         {
-            freed_block->m_next->m_prev = freed_block->m_prev;
-            freed_block->m_prev->m_next = freed_block->m_next;
+            freed_block -> m_next -> m_prev = freed_block -> m_prev;
+            freed_block -> m_prev -> m_next = freed_block -> m_next;
+            freed_block -> m_free = false;
+            return;
         }
-        freed_block->m_free = false;
+        else if (NULL != freed_block -> m_prev -> m_prev)
+        {
+            freed_block -> m_prev -> m_prev -> m_next = NULL;  
+        }
+        freed_block->m_free = false; 
     }
-}
+}  
