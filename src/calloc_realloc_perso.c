@@ -1,7 +1,8 @@
+#include <unistd.h>
+
 #include "malloc_perso.h"
 #include "free_perso.h"
 #include "calloc_realloc_perso.h"
-#include <unistd.h>
 
 void* realloc_perso(void* to_realloc, size_t new_size)
 {

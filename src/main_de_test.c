@@ -1,11 +1,10 @@
 #include <stdio.h> 
+// Test type limit values in malloc_perso
+#include <limits.h> 
 
 #include "malloc_perso.h"
 #include "free_perso.h"
 #include "calloc_realloc_perso.h"
-
-#include <limits.h> // test type limit values in malloc
-
 
 int main()
 {
