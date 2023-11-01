@@ -6,10 +6,10 @@
 void*   g_head = NULL;
 
 void* malloc_perso(size_t size)
-{    
+{
     /* Check if size taken from user is 0 or too large (negative numbers are turned into
     largest possible value of size_t, therefore too large) */
-    if (0 == size || size >= MAX_SIZE_T - sizeof(t_block) || 
+    if (0 == size || size >= MAX_SIZE_T - sizeof(t_block) ||
     size + sizeof(t_block) > MAX_SIZE_T - ALIGNMENT)
         return NULL;
 
@@ -24,7 +24,7 @@ void* malloc_perso(size_t size)
 
     // If valid block has been found, return data address (found_block + 32 bytes)
     if (found_block != NULL)
-        return (void*) ++found_block;
+        return (void*) (found_block + 1);
 
     // If not, create new block
     found_block = extend_heap(size);
@@ -33,21 +33,21 @@ void* malloc_perso(size_t size)
     printf("I'm going to alloc %zu bytes (sizeof t_block: %zu  + requested size %zu (aligment 16))\
 \nThe pointer to block is %p  / block end is %p / so aligned data block is at %p\n\
 I found no free block: created a new one %p\n",
-    size + sizeof(t_block), sizeof(t_block), temp_size, (void*) found_block, (void*) (found_block + 1), 
+    size + sizeof(t_block), sizeof(t_block), temp_size, (void*) found_block, (void*) (found_block + 1),
     (void*) (found_block + 1), (void*) found_block);
-    
+
     // Return data address
-    return (void*) ++found_block;
+    return (void*) (found_block + 1);
 }
 
 t_block* extend_heap(size_t size)
 {
+    //If successful, store adress of new block
+    t_block*    new_block = (t_block*) sbrk(0);
+    
     // Check if heap extension has failed
     if (sbrk(size + sizeof(t_block)) == (void*) -1)
         return NULL;
-
-    //If successful, store adress of new block
-    t_block*    new_block = (t_block*) sbrk(0);
 
     // Initialize block
     new_block -> m_blockSize = size;
@@ -60,7 +60,7 @@ t_block* extend_heap(size_t size)
         g_head = new_block;
         new_block -> m_prev = NULL;
     }
-    
+
     // If not, parse block list and link new block at the end
     else
     {
@@ -71,7 +71,7 @@ t_block* extend_heap(size_t size)
             list_member = list_member -> m_next;
 
         list_member -> m_next = new_block;
-        new_block -> m_prev = list_member; 
+        new_block -> m_prev = list_member;
     }
     return new_block;
 }
@@ -129,10 +129,10 @@ t_block* split_block (t_block* b, size_t size)
     printf("Block %p of size %zu can be split when allocating %zu bytes because block size > \
 mimimumSplitBlockSize %zu\nSplitting block %p to make it size %zu and creating \
 new block %p having size %zu\n",
-    (void*) b, b -> m_blockSize, size, size + sizeof(t_block), (void*) b, size, 
+    (void*) b, b -> m_blockSize, size, size + sizeof(t_block), (void*) b, size,
     (void*) remainder_block, remainder_size);
 
-    // Initialize new block 
+    // Initialize new block
     remainder_block -> m_prev = b;
     remainder_block -> m_next = b -> m_next;
     remainder_block -> m_blockSize = remainder_size;
@@ -148,7 +148,7 @@ new block %p having size %zu\n",
 
 void try_to_fusion(t_block* freed_block)
 {
-    /* If next block is free and small enough for its size to fit in a size_t variable 
+    /* If next block is free and small enough for its size to fit in a size_t variable
     when fused with current block, defragment */
     if (NULL != freed_block -> m_next && freed_block -> m_next -> m_free &&
     (large_size_t) (freed_block -> m_blockSize + freed_block -> m_next -> m_blockSize + sizeof(t_block)) < MAX_SIZE_T)
@@ -158,7 +158,7 @@ void try_to_fusion(t_block* freed_block)
 
         // Show what blocks will me merged
         printf("Merging block %p with next one %p because both are free\nBlock %p is now size %zu\n",
-        (void*) freed_block, (void*) freed_block -> m_next, 
+        (void*) freed_block, (void*) freed_block -> m_next,
         (void*) freed_block, freed_block -> m_blockSize);
 
         // Set m_free boolean to false so it is not reused when calling malloc_perso
@@ -170,6 +170,8 @@ void try_to_fusion(t_block* freed_block)
             freed_block -> m_next = freed_block -> m_next -> m_next;
             freed_block -> m_next -> m_prev = freed_block;
         }
+        else
+            freed_block -> m_next = NULL;
     }
     /* If previous block is free and its size is smalle enough to fit in a size_t variable
     when fused with current block, defragment */
@@ -182,16 +184,16 @@ void try_to_fusion(t_block* freed_block)
         // Show what blocks will be merged
         printf("Merging block %p with previous one %p because both are free\nBlock %p is now size %zu\n",
         (void*) freed_block, (void*) freed_block -> m_prev,
-        (void*) freed_block -> m_prev, freed_block -> m_prev -> m_blockSize); 
+        (void*) freed_block -> m_prev, freed_block -> m_prev -> m_blockSize);
 
         // Set m_free boolean to false so it is not reused
         freed_block->m_free = false;
 
-        // If there is a block after the current block, make it the previous block's next block
-        if (NULL != freed_block -> m_next)
-        {
-            freed_block -> m_next -> m_prev = freed_block -> m_prev;
-            freed_block -> m_prev -> m_next = freed_block -> m_next;
-        }   
+        // // If there is a block after the current block, make it the previous block's next block
+        // if (NULL != freed_block -> m_next)
+        //     freed_block -> m_next -> m_prev = freed_block -> m_prev;
+            
+        freed_block -> m_prev -> m_next = freed_block -> m_next;
+            //freed_block -> m_prev -> m_next = NULL;
     }
 }
