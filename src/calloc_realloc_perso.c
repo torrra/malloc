@@ -17,10 +17,10 @@ void* realloc_perso(void* to_realloc, size_t new_size)
         return NULL;
 
     // Use array of block size to get each byte of data
-    char    new_data_copy[((t_block*) to_realloc - 1)->m_size];
+    char    new_data_copy[((t_block*) to_realloc - 1)->m_blockSize];
 
     // For each byte, copy it into the array and increment pointer to copy next byte
-    for (size_t index = 0; index < ((t_block*) ((char*) to_realloc + (sizeof(t_block))))->m_size && 
+    for (size_t index = 0; index < ((t_block*) ((char*) to_realloc + (sizeof(t_block))))->m_blockSize && 
     index < new_size; index++)
     {
         new_data_copy[index] = *((char*)to_realloc);

@@ -129,7 +129,7 @@ int main()
   printf("Do not defrag if block is too big:\n");
   free_perso(mib_test);
   free_perso(ulong_test3);
-  printf("sizeof mib_test : %lu (should be 1048576)\n", ((t_block*)(mib_test)-1)->m_size);
+  printf("sizeof mib_test : %lu (should be 1048576)\n", ((t_block*)(mib_test)-1)->m_blockSize);
 
   printf("\nsize = ULONG_MAX (should be null):\n");
   void* ulong_test2 = malloc_perso(ULONG_MAX);
@@ -157,11 +157,11 @@ int main()
   printf("is null\n\n");
 
   printf("Freeing valid pointers:\n\n");
-  printf("sizeof float2 : %lu\n", ((t_block*)(float2)-1)->m_size);
+  printf("sizeof float2 : %lu\n", ((t_block*)(float2)-1)->m_blockSize);
   free_perso(float2);
-  printf("sizeof test_calloc: %lu\n", ((t_block*)(test_calloc)-1)->m_size);
+  printf("sizeof test_calloc: %lu\n", ((t_block*)(test_calloc)-1)->m_blockSize);
   free_perso(test_calloc);
-  printf("sizeof new_string : %lu\n", ((t_block*)(new_string)-1)->m_size);
+  printf("sizeof new_string : %lu\n", ((t_block*)(new_string)-1)->m_blockSize);
   free_perso(new_string);
 
   printf("\nFreeing null pointers:\n\n");

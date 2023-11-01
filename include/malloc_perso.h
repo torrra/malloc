@@ -21,7 +21,7 @@ typedef unsigned long long large_size_t;
 typedef struct s_block
 {
     // Size of data (aligned on 16)
-    size_t              m_size;
+    size_t              m_blockSize;
     // Previous malloc_perso heap block
     struct s_block*     m_prev;
     // Next malloc_perso heap block
