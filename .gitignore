@@ -1,8 +1,8 @@
-#Debug files
-debugbuild/
+# Output folders
+*[Bb]uild/
 
 #.vscode files
 .vscode/
 
-#Expected output (txt file)
+# Expected output (txt file)
 resultat_type.txt
