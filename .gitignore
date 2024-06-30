@@ -1,5 +1,5 @@
-#Debug files
-debugbuild/
+# Output folders
+*[Bb]uild/
 
 #.vscode files
 .vscode/
