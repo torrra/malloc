@@ -1,5 +1,5 @@
-#ifndef MALLOC_PERSO_H
-#define MALLOC_PERSO_H
+#ifndef ALLOCATE_H
+#define ALLOCATE_H
 
 #include <stdbool.h>
 #include <stddef.h>
@@ -22,9 +22,9 @@ typedef struct s_block
 {
     // Size of data (aligned on 16)
     size_t              m_blockSize;
-    // Previous malloc_perso heap block
+    // Previous heap block
     struct s_block*     m_prev;
-    // Next malloc_perso heap block
+    // Next heap block
     struct s_block*     m_next;
     // Free (ready to be allocated) / already in-use status
     bool                m_free;
@@ -34,7 +34,7 @@ typedef struct s_block
 extern void* g_head ;
 
 // Dynamic allocation function
-void* malloc_perso(size_t size);
+void* allocate(size_t size);
 
 // Push break further up to allocate new blocks on the heap
 t_block* extend_heap(size_t size);
@@ -49,6 +49,21 @@ t_block* find_block(size_t size);
 t_block* split_block (t_block* b, size_t size);
 
 // Defragment adjacent free blocks if size is not too big
-void try_to_fusion(t_block* freed_block);
+void defrag(t_block* freed_block);
+
+
+
+/* Reallocate (resize and possibly move) a block only if non null 
+and previously allocated with allocate. If the pointer passed to reallocate
+is invalid, this function is equivalent to allocate */
+void* reallocate(void* to_realloc, size_t size);
+
+// Allocate an aray of n elements of x bytes on the heap
+void* array_alloc(size_t nb_elements, size_t new_size);
+
+
+/* Deallocate a block only if non null and 
+previously allocated with allocate() */
+void deallocate (void *ptr);
 
 #endif

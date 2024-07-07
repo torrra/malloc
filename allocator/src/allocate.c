@@ -1,11 +1,11 @@
 #include <unistd.h>
 #include <stdio.h>
 
-#include "malloc_perso.h"
+#include "allocate.h"
 
 void*   g_head = NULL;
 
-void* malloc_perso(size_t size)
+void* allocate(size_t size)
 {
     /* Check if size taken from user is 0 or too large (negative numbers are turned into
     largest possible value of size_t, therefore too large) */
@@ -146,7 +146,7 @@ new block %p having size %zu\n",
     return b;
 }
 
-void try_to_fusion(t_block* freed_block)
+void defrag(t_block* freed_block)
 {
     /* If next block is free and small enough for its size to fit in a size_t variable
     when fused with current block, defragment */
@@ -161,7 +161,7 @@ void try_to_fusion(t_block* freed_block)
         (void*) freed_block, (void*) freed_block -> m_next,
         (void*) freed_block, freed_block -> m_blockSize);
 
-        // Set m_free boolean to false so it is not reused when calling malloc_perso
+        // Set m_free boolean to false so it is not reused when calling allocate
         freed_block -> m_next -> m_free = false;
 
         // If there is a block after the next one, make it the current block's next block

@@ -1,16 +1,14 @@
 #include <unistd.h>
 
-#include "malloc_perso.h"
-#include "free_perso.h"
-#include "calloc_realloc_perso.h"
+#include "allocate.h"
 
-void* realloc_perso(void* to_realloc, size_t new_size)
+void* reallocate(void* to_realloc, size_t new_size)
 {
     // Free block to either split it if large enough or leave it free if not
-    free_perso(to_realloc);
+    deallocate(to_realloc);
 
     // Cast new data pointer to char* for later pointer arithmetics (since char is 1 byte)
-    char*   new_data = (char*) malloc_perso(new_size);
+    char*   new_data = (char*) allocate(new_size);
 
     // Return NULL if allocation failed
     if (NULL == new_data)
@@ -37,10 +35,10 @@ void* realloc_perso(void* to_realloc, size_t new_size)
     return new_data;
 }
 
-void* calloc_perso(size_t nb_elements, size_t size)
+void* array_alloc(size_t nb_elements, size_t size)
 {
     // Cast new data pointer to char* for pointer arithmetics
-    char*    block_data = (char*) malloc_perso(nb_elements * size);
+    char*    block_data = (char*) allocate(nb_elements * size);
 
     // Return NULL if allocation failed
     if (NULL == block_data)
